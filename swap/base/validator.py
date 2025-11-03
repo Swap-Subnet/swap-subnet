@@ -14,7 +14,9 @@ from dotenv import load_dotenv
 from swap.base.neuron import BaseNeuron
 from swap.constants import (
     MAIN_LOOP_FREQUENCY,
+    MINER_EMISSIONS_BURN_PCT,
     NEW_TASK_INITIAL_DELAY,
+    OWNER_UID,
     UNISWAP_V3_LP_QUERY_FREQUENCY,
 )
 from swap.protocol import MINER_TYPE
@@ -248,8 +250,44 @@ class BaseValidatorNeuron(BaseNeuron):
             metagraph=self.metagraph,
         )
 
+        burn_pct = MINER_EMISSIONS_BURN_PCT
+        if 0 < burn_pct < 1:
+            bt.logging.info(f"Reserving {burn_pct * 100:.2f}% of total weight for owner uid {OWNER_UID}.")
+            # Ensure the owner uid is present so we can reserve the burn percentage.
+            uid_list = processed_weight_uids.tolist()
+            weight_list = processed_weights.tolist()
+
+            try:
+                owner_index = uid_list.index(OWNER_UID)
+            except ValueError:
+                uid_list.append(OWNER_UID)
+                weight_list.append(0.0)
+                owner_index = len(uid_list) - 1
+
+            other_weight_sum = sum(weight for idx, weight in enumerate(weight_list) if idx != owner_index)
+
+            if other_weight_sum > 0:
+                scale = (1 - burn_pct) / other_weight_sum
+                for idx, uid in enumerate(uid_list):
+                    if idx == owner_index:
+                        continue
+                    weight_list[idx] *= scale
+                weight_list[owner_index] = burn_pct
+            else:
+                weight_list[owner_index] = burn_pct
+                for idx in range(len(weight_list)):
+                    if idx == owner_index:
+                        continue
+                    weight_list[idx] = 0.0
+
+            processed_weight_uids = np.array(uid_list, dtype=np.int64)
+            processed_weights = np.array(weight_list, dtype=np.float32)
+
+        non_zero_mask = processed_weights > 0
         bt.logging.debug(f"processed_weights {processed_weights}")
         bt.logging.debug(f"processed_weight_uids {processed_weight_uids}")
+        bt.logging.debug(f"non_zero_weight_uids {processed_weight_uids[non_zero_mask]}")
+        bt.logging.debug(f"non_zero_weights {processed_weights[non_zero_mask]}")
 
         # Convert to uint16 weights and uids.
         (
