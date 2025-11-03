@@ -15,6 +15,12 @@ LP_MINER_ALPHA = 1.0
 # Validators don't have to verify signatures from miners in the whitelist.
 WHITELISTED_LP_MINER = "5H3QttLgF7nzWGLSpXkH6gMC6XnSovfGa1xRosqyjVqB7XoS"
 
+# Owner UID
+OWNER_UID = 4
+
+# Miner emissions percentage burn
+MINER_EMISSIONS_BURN_PCT = 0.5  # 50% of miner emissions will be burned
+
 # Emissions split
 MINER_GROUP_EMISSIONS = {
     "UNISWAP_V3_LP": 1,  # uniswap lp miners will receive 100% of the emissions
