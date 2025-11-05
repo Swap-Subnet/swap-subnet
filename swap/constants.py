@@ -16,7 +16,7 @@ LP_MINER_ALPHA = 1.0
 WHITELISTED_LP_MINER = "5H3QttLgF7nzWGLSpXkH6gMC6XnSovfGa1xRosqyjVqB7XoS"
 
 # Owner UID
-OWNER_UID = 4
+OWNER_UID = 201
 
 # Miner emissions percentage burn
 MINER_EMISSIONS_BURN_PCT = 0.5  # 50% of miner emissions will be burned
