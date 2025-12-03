@@ -231,10 +231,16 @@ class BaseValidatorNeuron(BaseNeuron):
                 "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward \
                 functions."
             )
+            
+        # IMPORTANT: Zero out the owner UID score before normalization to prevent double-counting
+        scores_for_weights = self.scores.copy()
+        if OWNER_UID < len(scores_for_weights):
+            scores_for_weights[OWNER_UID] = 0.0
+            bt.logging.debug(f"Zeroed out score for OWNER_UID {OWNER_UID} before weight calculation")
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        raw_weights = normalize_numpy(self.scores)
+        raw_weights = normalize_numpy(scores_for_weights)
 
         bt.logging.debug(f"raw_weights {raw_weights}")
         bt.logging.debug(f"raw_weight_uids {self.metagraph.uids}")
